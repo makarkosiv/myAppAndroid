@@ -1,15 +1,15 @@
 package com.example.mbarz.myapplication;
 
 import android.database.Cursor;
-import android.support.v7.app.AppCompatActivity;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.SubscriptSpan;
 import android.view.*;
 import android.widget.*;
-import android.database.sqlite.SQLiteDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     String dateForDB = null;
     final String COLOR_WHITE = "white";
     final String COLOR_GREEN = "green";
-    TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
+    TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
             TableRow.LayoutParams.MATCH_PARENT, 1.0f);
 
     List<String> fields = new ArrayList<>(Arrays.asList(
@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
             "Ркільц",
             "Рлін"
     ));
+
+    Map<String, Integer> hourMarkedFields = new HashMap<>();
 
 
     @Override
@@ -45,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void createFieldNames() {
         LinearLayout layout = findViewById(R.id.fields);
-//        LinearLayout.LayoutParams fieldParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-//                LinearLayout.LayoutParams.MATCH_PARENT, 1.0f);
         TextView field;
         for(int i = 0; i < fields.size() + 1; i++) {
             String nameField = null;
@@ -112,12 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void createTable(Map<String, List<String>> data) {
         TableLayout table = findViewById(R.id.main_table);
-//        TableRow.LayoutParams rowParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
-//                TableRow.LayoutParams.WRAP_CONTENT, 1.0f);
         for(int hour = 1; hour < 25; hour++) {
-            TableRow row = new TableRow(this);
-            row.setLayoutParams(tableParams);
-            row.setOrientation(TableRow.HORIZONTAL);
+            TableRow row = getTableRow();
             for (int column = 0; column < fields.size() + 1; column++) {
                 EditText field = getEditText(tableParams, hour, column);
                 field.setBackgroundResource(getBackgroundResid(data, hour));
@@ -131,13 +127,24 @@ public class MainActivity extends AppCompatActivity {
         if (data != null && data.get("1").get(5) != null) {
             EditText note = getEditText(tableParams, 25, 0);
             note.setText(getText(data, 1, 6, note));
-            table.addView(note);
+            TableRow row = getTableRow();
+            row.addView(note);
+            table.addView(row);
         }
         if (data != null && data.get("1").get(6) != null) {
             EditText recommendation = getEditText(tableParams, 26, 0);
             recommendation.setText(getText(data, 1, 7, recommendation));
-            table.addView(recommendation);
+            TableRow row = getTableRow();
+            row.addView(recommendation);
+            table.addView(row);
         }
+    }
+
+    private TableRow getTableRow() {
+        TableRow row = new TableRow(this);
+        row.setLayoutParams(tableParams);
+        row.setOrientation(TableRow.HORIZONTAL);
+        return row;
     }
 
     private Integer getBackgroundResid(Map<String, List<String>> data, int hour) {
@@ -157,14 +164,10 @@ public class MainActivity extends AppCompatActivity {
         field.setId(hour * 10 + column);
         field.setEms(10);
         field.setGravity(Gravity.CENTER);
-//        field.setBackgroundResource(R.drawable.back);
         return field;
     }
 
     private String getText(Map<String, List<String>> data, int hour, int column, EditText field) {
-//        if (hour == 25 || hour == 26) {
-//            return "";
-//        }
         if (column == 0) {
             field.setEnabled(false);
             return String.valueOf(hour);
@@ -186,14 +189,24 @@ public class MainActivity extends AppCompatActivity {
                 int mYear = year;
                 String mMonth = month > 8 ? String.valueOf(month + 1) : 0 + String.valueOf(month + 1);
                 String mDay = dayOfMonth > 9 ? String.valueOf(dayOfMonth) : 0 + String.valueOf(dayOfMonth);
-                String selectedDate = new StringBuilder().append(mDay)
-                        .append("-").append(mMonth).append("-").append(mYear).toString();
-                Toast.makeText(getApplicationContext(), selectedDate, Toast.LENGTH_LONG).show();
-                setContentView(R.layout.activity_main);
-                date = selectedDate;
-                String dateForDB = new StringBuilder().append(mYear)
+                String selectedDate = new StringBuilder().append(mYear)
                         .append("-").append(mMonth).append("-").append(mDay).toString();
-                updateMainTable(dateForDB);
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                String today = format.format(new Date());
+                if (selectedDate.compareTo(today) > 0) {
+                    Toast.makeText(getApplicationContext(), "Обирайте дату не пізнішу сьогоднішньої!",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                } else {
+                    selectedDate = new StringBuilder().append(mDay)
+                            .append("-").append(mMonth).append("-").append(mYear).toString();
+                    Toast.makeText(getApplicationContext(), selectedDate, Toast.LENGTH_LONG).show();
+                    setContentView(R.layout.activity_main);
+                    date = selectedDate;
+                    String dateForDB = new StringBuilder().append(mYear)
+                            .append("-").append(mMonth).append("-").append(mDay).toString();
+                    updateMainTable(dateForDB);
+                }
             }
         });
     }
@@ -202,21 +215,20 @@ public class MainActivity extends AppCompatActivity {
         String[] dateElements = ((Button)findViewById(R.id.date)).getText().toString().split("-");
         String dateForDB = dateElements[2] + "-" + dateElements[1] + "-" + dateElements[0];
         database = openOrCreateDatabase("data", MODE_PRIVATE, null);
-//        database.execSQL("drop table DataValues");
         database.execSQL("CREATE TABLE IF NOT EXISTS DataValues(date DATE, hour INT, Pbuf FLOAT, " +
-                "Pzatr FLOAT, Pkil FLOAT, Plin FLOAT, Color VARCHAR);");
+                "Pzatr FLOAT, Pkil FLOAT, Plin FLOAT, color VARCHAR);");
         database.execSQL("CREATE TABLE IF NOT EXISTS Notes(date DATE, note TEXT, recommend TEXT);");
         database.execSQL("DELETE FROM DataValues WHERE date=" + dateForDB);
         database.execSQL("DELETE FROM Notes WHERE date=" + dateForDB);
         List<String> row = new ArrayList<>();
-        EditText field = null;
+        EditText field;
         for(int hour = 1; hour < 25; hour++) {
             for(int column = 0; column < fields.size() + 1; column++) {
                 field = findViewById((hour) * 10 + column);
                 row.add(field.getText().toString());
             }
-            row.add(field.getBackground().getConstantState().equals(
-                    getResources().getDrawable(R.drawable.back).getConstantState()) ? COLOR_WHITE : COLOR_GREEN);
+            String backColor = hourMarkedFields.get(String.valueOf(hour)) == null ? COLOR_WHITE : COLOR_GREEN;
+            row.add(backColor);
             String query = "INSERT INTO DataValues VALUES(" + dateForDB + "," + hour + "," + row.get(1) + "," +
                     row.get(2) + "," + row.get(3) + "," + row.get(4) + ",'" + row.get(5) + "');";
             database.execSQL(query);
@@ -230,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
                 "','" + stringRecommend + "');";
         database.execSQL(query2);
         database.close();
+        hourMarkedFields.clear();
         Toast.makeText(getApplicationContext(), "Дані збережено", Toast.LENGTH_LONG).show();
         onClickCalendar(v);
     }
@@ -261,11 +274,12 @@ public class MainActivity extends AppCompatActivity {
                     findViewById(25 * 10).requestFocus();
                     break;
                 } else {
-//                    TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
-//                            TableRow.LayoutParams.WRAP_CONTENT, 1.0f);
                     EditText note = getEditText(tableParams, 25, 0);
+                    note.setBackgroundResource(R.drawable.back);
                     note.setText("Примітка:\n");
-                    table.addView(note);
+                    TableRow row = getTableRow();
+                    row.addView(note);
+                    table.addView(row);
                     note.requestFocus();
                     Toast.makeText(getApplicationContext(), "Додано примітку", Toast.LENGTH_LONG).show();
                 }
@@ -275,11 +289,12 @@ public class MainActivity extends AppCompatActivity {
                     findViewById(26 * 10).requestFocus();
                     break;
                 } else {
-//                TableRow.LayoutParams tableParams = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT,
-//                        TableRow.LayoutParams.WRAP_CONTENT, 1.0f);
                     EditText recommendation = getEditText(tableParams, 26, 0);
+                    recommendation.setBackgroundResource(R.drawable.back);
                     recommendation.setText("Пропозиції щодо раціоналізації:\n");
-                    table.addView(recommendation);
+                    TableRow row = getTableRow();
+                    row.addView(recommendation);
+                    table.addView(row);
                     recommendation.requestFocus();
                     Toast.makeText(getApplicationContext(), "Додано пропозицію з раціоналізації", Toast.LENGTH_LONG).show();
                     break;
@@ -357,6 +372,7 @@ public class MainActivity extends AppCompatActivity {
             for (int column = 1; column < fields.size() + 1; column++) {
                 findViewById(hourFocus * 10 + column).setBackgroundResource(R.drawable.mark_field);
             }
+            hourMarkedFields.put(String.valueOf(hourFocus), 1);
         }
     }
 }

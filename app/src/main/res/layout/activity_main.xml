@@ -10,18 +10,12 @@
     <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:id="@+id/main_layout">
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-            <!--<CheckBox-->
-            <!--android:text="Розширене меню"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:background="@drawable/back"-->
-            <!--android:layout_weight="1"-->
-            <!--android:id="@+id/checkBox"/>-->
             <Button
                     android:text="Зберегти"
                     android:layout_width="wrap_content"
@@ -43,17 +37,6 @@
                     android:id="@+id/date"
                     android:onClick="onClickCalendar"
                     android:layout_weight="1"/>
-            <!--<EditText-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:inputType="date"-->
-            <!--android:text="DATE"-->
-            <!--android:ems="20"-->
-            <!--android:gravity="center"-->
-            <!--android:enabled="false"-->
-            <!--android:background="@drawable/back"-->
-            <!--android:id="@+id/date"-->
-            <!--android:layout_weight="1"/>-->
         </LinearLayout>
         <LinearLayout
                 android:orientation="horizontal"
@@ -67,12 +50,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/main_table">
-                <TableRow
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                <!--<TableRow-->
+                        <!--android:orientation="horizontal"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content">-->
 
-                </TableRow>
+                <!--</TableRow>-->
                 <!--<TableRow-->
                 <!--android:orientation="horizontal"-->
                 <!--android:layout_width="match_parent"-->
