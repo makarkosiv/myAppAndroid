@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu     xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+            android:id="@+id/menu_autoFill"
+            android:title="Автозаповнення">
+    </item>
+    <item
+            android:id="@+id/menu_deleteAll"
+            android:title="Повна очистка">
+    </item>
+    <item
+            android:id="@+id/menu_note"
+            android:title="Додати примітку">
+    </item>
+    <item
+            android:id="@+id/menu_recommendation"
+            android:title="Додати раціональну пропозицію">
+    </item>
+
+    <!--<group-->
+            <!--android:id="@+id/group1">-->
+        <!--<item-->
+                <!--android:id="@+id/menu_note"-->
+                <!--android:title="Додати примітку">-->
+        <!--</item>-->
+        <!--<item-->
+                <!--android:id="@+id/menu_mark"-->
+                <!--android:title="Виділити запис">-->
+        <!--</item>-->
+    <!--</group>-->
+</menu>

@@ -1,0 +1,28 @@
+# directories
+.settings/
+.target/
+.idea/
+.worksheet/
+bin/
+build/
+dist/
+logs/
+target/
+tmp/
+
+# files
+*.iml
+*/.DS_Store
+\#*
+.cache
+.classpath
+.DS_Store
+.history
+.idea
+.idea_modules
+.project
+RUNNING_PID
+application.log
+*.pyc
+tools/src/main/resources/data/.~*
+crontab_job_out.log
