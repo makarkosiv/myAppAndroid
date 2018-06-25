@@ -1,7 +1,6 @@
 package com.example.mbarz.myapplication;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,13 +12,13 @@ import android.text.style.SubscriptSpan;
 import android.view.*;
 import android.widget.*;
 
-import java.text.Format;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    private SQLiteDatabase database;
     String date = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
     private String dateForDB = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
     private final String COLOR_WHITE = "white";
@@ -49,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
     Handler handler;
     Message msg;
 
+    private static final String DB_URL = "jdbc:mysql://10.0.2.2:3306/pl_dev";
+//            "192.168.56.1/data";
+    //172.18.0.1
+    //127.0.0.1
+    private static final String USER = "root";
+    private static final String PASS = "root";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-                updateMainTable(dateForDB);
+        updateMainTable(dateForDB);
     }
 
     public void createFieldNames() {
@@ -170,33 +175,33 @@ public class MainActivity extends AppCompatActivity {
 
     private Map<String, List<String>> getStringListMap(String dateForDB) {
         Map<String, List<String>> data = new HashMap<>();
-        database = openOrCreateDatabase("data", MODE_PRIVATE, null);
-//        database.execSQL("drop table DataValues");
-//        database.execSQL("drop table Notes");
-        createTablesInDB();
-        Cursor resultSet = database.rawQuery("Select * from DataValues left join Notes on " +
-                "DataValues.date=Notes.date where DataValues.date=" + dateForDB,null);
-        resultSet.moveToFirst();
-        while (resultSet.isAfterLast() == false) {
-            data.put(String.valueOf(resultSet.getInt(1)),
-                    Arrays.asList(resultSet.getString(2),
-                            resultSet.getString(3),
-                            resultSet.getString(4),
-                            resultSet.getString(5),
-                            resultSet.getString(6),
-                            resultSet.getString(8),
-                            resultSet.getString(9)));
-            resultSet.moveToNext();
+        try {
+            Connection conn = getConnection();
+            if (conn == null) {
+                sendToHandler(TOAST, "Розірвано з'єднання!");
+            } else {
+                Statement statement = conn.createStatement();
+                String query = "Select * from DataValues left join Notes on " +
+                        "DataValues.date=Notes.date where DataValues.date=" + dateForDB;
+                ResultSet resultSet = statement.executeQuery(query);
+                while (resultSet.next()) {
+                    data.put(String.valueOf(resultSet.getInt(1)),
+                            Arrays.asList(resultSet.getString(2),
+                                    resultSet.getString(3),
+                                    resultSet.getString(4),
+                                    resultSet.getString(5),
+                                    resultSet.getString(6),
+                                    resultSet.getString(8),
+                                    resultSet.getString(9)));
+                }
+                statement.close();
+            }
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendToHandler(TOAST, "Розірвано з'єднання!");
         }
-        resultSet.close();
-        database.close();
         return data;
-    }
-
-    private void createTablesInDB() {
-        database.execSQL("CREATE TABLE IF NOT EXISTS DataValues(date DATE, hour INT, Pbuf FLOAT, " +
-                "Pzatr FLOAT, Pkil FLOAT, Plin FLOAT, color VARCHAR);");
-        database.execSQL("CREATE TABLE IF NOT EXISTS Notes(date DATE, note TEXT, recommend TEXT);");
     }
 
     public void createTableInUI(Map<String, List<String>> data) {
@@ -272,47 +277,80 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSaveData(View v) {
-        final View view = v;
-        Thread save = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String[] dateElements = ((Button) findViewById(R.id.date)).getText().toString().split("-");
-                String dateForDB = dateElements[2] + "-" + dateElements[1] + "-" + dateElements[0];
-                database = openOrCreateDatabase("data", MODE_PRIVATE, null);
-                createTablesInDB();
-                database.execSQL("DELETE FROM DataValues WHERE date=" + dateForDB);
-                database.execSQL("DELETE FROM Notes WHERE date=" + dateForDB);
-                List<String> row = new ArrayList<>();
-                EditText field;
-                for (int hour = 1; hour < 25; hour++) {
-                    for (int column = 0; column < fields.size() + 1; column++) {
-                        field = findViewById((hour) * 10 + column);
-                        row.add(field.getText().toString());
-                    }
-                    String backColor = hourMarkedFields.get(String.valueOf(hour)) == null ? COLOR_WHITE : COLOR_GREEN;
-                    row.add(backColor);
-                    String query = "INSERT INTO DataValues VALUES(" + dateForDB + "," + hour + "," + row.get(1) + "," +
-                            row.get(2) + "," + row.get(3) + "," + row.get(4) + ",'" + row.get(5) + "');";
-                    database.execSQL(query);
-                    row.clear();
-                }
-                EditText note = findViewById(25 * 10);
-                EditText recommendation = findViewById(26 * 10);
-                if (note != null || recommendation != null) {
-                    String stringNote = note != null ? note.getText().toString() : "Примітка:\n";
-                    String stringRecommend = recommendation != null ? recommendation.getText().toString() : "Пропозиції щодо раціоналізації:\n";
-                    String query2 = "INSERT INTO Notes VALUES(" + dateForDB + ",'" + stringNote +
-                            "','" + stringRecommend + "');";
-                    database.execSQL(query2);
-                }
+        Send objSend = new Send();
+        objSend.execute("");
+    }
 
-                database.close();
-                hourMarkedFields.clear();
-                onClickCalendar(view);
-                sendToHandler(TOAST, "Дані збережено");
+    private class Send extends AsyncTask<String, String, String> {
+
+        String msg = "";
+
+        @Override
+        protected void onPreExecute() {
+            sendToHandler(TOAST, "Відбувається збереження даних...");
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            try {
+                Connection conn = getConnection();
+                if (conn == null) {
+                    return "Розірвано з'єднання!";
+                }
+                else {
+                    String[] dateElements = ((Button) findViewById(R.id.date)).getText().toString().split("-");
+                    String dateForDB = dateElements[2] + "-" + dateElements[1] + "-" + dateElements[0];
+                    Statement statement = conn.createStatement();
+                    String query = "DELETE FROM DataValues WHERE date=" + dateForDB + "; ";
+                    query += "DELETE FROM Notes WHERE date=" + dateForDB + "; ";
+
+                    List<String> row = new ArrayList<>();
+                    EditText field;
+                    for (int hour = 1; hour < 25; hour++) {
+                        for (int column = 0; column < fields.size() + 1; column++) {
+                            field = findViewById((hour) * 10 + column);
+                            row.add(field.getText().toString());
+                        }
+                        String backColor = hourMarkedFields.get(String.valueOf(hour)) == null ? COLOR_WHITE : COLOR_GREEN;
+                        row.add(backColor);
+                        query += "INSERT INTO DataValues VALUES(" + dateForDB + "," + hour + "," + row.get(1) + "," +
+                                row.get(2) + "," + row.get(3) + "," + row.get(4) + ",'" + row.get(5) + "'); ";
+                        row.clear();
+                    }
+                    statement.executeUpdate(query);
+                    EditText note = findViewById(25 * 10);
+                    EditText recommendation = findViewById(26 * 10);
+                    if (note != null || recommendation != null) {
+                        String stringNote = note != null ? note.getText().toString() : "Примітка:\n";
+                        String stringRecommend = recommendation != null ? recommendation.getText().toString() : "Пропозиції щодо раціоналізації:\n";
+                        query = "INSERT INTO Notes VALUES(" + dateForDB + ",'" + stringNote +
+                                "','" + stringRecommend + "');";
+                        statement.executeUpdate(query);
+                    }
+
+                    hourMarkedFields.clear();
+                    onClickCalendar(null);
+                    msg = "Дані збережено!";
+                    statement.close();
+                }
+                conn.close();
+            } catch (Exception e) {
+                msg = "Розірвано з'єднання!";
+                e.printStackTrace();
             }
-        });
-        save.start();
+            return msg;
+        }
+
+        @Override
+        protected void onPostExecute(String msg) {
+            sendToHandler(TOAST, msg);
+        }
+    }
+
+    private Connection getConnection() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.jdbc.Driver");
+//        DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+        return DriverManager.getConnection(DB_URL, USER, PASS);
     }
 
     //options menu
