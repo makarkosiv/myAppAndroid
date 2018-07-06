@@ -17,12 +17,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             <Button
-                    android:text="Зберегти"
+                    android:text="Таблиця 1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/back"
-                    android:id="@+id/save_data_button"
-                    android:onClick="onClickSaveData"
+                    android:id="@+id/button_table1"
+                    android:onClick="onClickTable"
                     android:layout_weight="1"/>
         </LinearLayout>
         <LinearLayout
@@ -30,94 +30,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             <Button
-                    android:text="Календар"
+                    android:text="Таблиця 2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/back"
-                    android:id="@+id/date"
-                    android:onClick="onClickCalendar"
+                    android:id="@+id/button_table2"
+                    android:onClick="onClickTable"
                     android:layout_weight="1"/>
         </LinearLayout>
         <LinearLayout
                 android:orientation="horizontal"
-                android:id="@+id/fields"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-        </LinearLayout>
-        <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
-            <TableLayout
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
+            <Button
+                    android:text="Таблиця 3"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/main_table">
-                <!--<TableRow-->
-                        <!--android:orientation="horizontal"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="wrap_content">-->
-
-                <!--</TableRow>-->
-                <!--<TableRow-->
-                <!--android:orientation="horizontal"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content">-->
-                <!--<EditText-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:inputType="text"-->
-                <!--android:text="10.5"-->
-                <!--android:ems="10"-->
-                <!--android:gravity="center"-->
-                <!--android:background="@drawable/back"-->
-                <!--android:id="@+id/editText4"-->
-                <!--android:layout_weight="1"/>-->
-                <!--<EditText-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:inputType="text"-->
-                <!--android:text="12"-->
-                <!--android:ems="10"-->
-                <!--android:gravity="center"-->
-                <!--android:background="@drawable/back"-->
-                <!--android:id="@+id/editText3"-->
-                <!--android:layout_weight="1"/>-->
-                <!--<EditText-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:inputType="text"-->
-                <!--android:text="15.5"-->
-                <!--android:ems="10"-->
-                <!--android:gravity="center"-->
-                <!--android:background="@drawable/back"-->
-                <!--android:id="@+id/editText2"-->
-                <!--android:layout_weight="1"/>-->
-                <!--<EditText-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:inputType="text"-->
-                <!--android:text="20"-->
-                <!--android:ems="10"-->
-                <!--android:gravity="center"-->
-                <!--android:background="@drawable/back"-->
-                <!--android:id="@+id/editText"-->
-                <!--android:layout_weight="1"/>-->
-                <!--</TableRow>-->
-                <!--<TableRow-->
-                <!--android:orientation="horizontal"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent">-->
-
-                <!--<EditText-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:inputType="textPersonName"-->
-                <!--android:text="Name"-->
-                <!--android:ems="10"-->
-                <!--android:gravity="center"-->
-                <!--android:background="@drawable/back"-->
-                <!--android:layout_weight="1"-->
-                <!--android:id="@+id/editText5"/>-->
-                <!--</TableRow>-->
-            </TableLayout>
-        </ScrollView>
+                    android:background="@drawable/back"
+                    android:id="@+id/button_table3"
+                    android:onClick="onClickTable"
+                    android:layout_weight="1"/>
+        </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

@@ -16,6 +16,14 @@
             android:id="@+id/menu_recommendation"
             android:title="Додати раціональну пропозицію">
     </item>
+    <item
+            android:id="@+id/menu_author"
+            android:title="Додати автора(обов'язково!)">
+    </item>
+    <item
+            android:id="@+id/menu_tables"
+            android:title="Вихід в головне меню">
+    </item>
 
     <!--<group-->
             <!--android:id="@+id/group1">-->
