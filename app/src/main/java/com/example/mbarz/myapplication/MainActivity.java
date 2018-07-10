@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         dateForDB = format.format(new Date());
-        ((Button) findViewById(idDate)).setText(date);
+//        ((Button) findViewById(idDate)).setText(date);
 
         handler = new Handler() {
             public void handleMessage(android.os.Message msg) {
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                         ((LinearLayout) findViewById(idFields)).addView((TextView)msg.obj);
                         break;
                     case SET_TEXT:
-                        ((EditText) findViewById(msg.arg1)).setText((String)msg.obj);
+                        ((Button) findViewById(msg.arg1)).setText((String)msg.obj);
                         break;
                     case CLEAR_TABLE:
                         ((TableLayout) findViewById(idTable)).removeAllViews();
@@ -144,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-                updateMainTable(dateForDB);
     }
 
     private int getLayoutByNumberTable(int number) {
@@ -159,13 +158,13 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
-    private void sendToHandler(int set_date, Object object) {
-        msg = handler.obtainMessage(set_date, object);
+    private void sendToHandler(int set_data, Object object) {
+        msg = handler.obtainMessage(set_data, object);
         handler.sendMessage(msg);
     }
 
-    private void sendToHandler(int set_date, int arg1, int arg2, Object object) {
-        msg = handler.obtainMessage(set_date, arg1, arg2, object);
+    private void sendToHandler(int set_data, int arg1, int arg2, Object object) {
+        msg = handler.obtainMessage(set_data, arg1, arg2, object);
         handler.sendMessage(msg);
     }
 
@@ -173,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         Thread update = new Thread(new Runnable() {
             @Override
             public void run() {
+                sendToHandler(SET_TEXT, idDate, 0, date);
                 createFieldNames();
                 Map<String, List<String>> data = getStringListMap(new String(dateForDB));
                 createTableInUI(data.isEmpty() ? null : data);
@@ -198,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 if (number_table == 1) {
                     field.setText(sb, TextView.BufferType.SPANNABLE);
                 } else {
-                    field.setText(currentFields.get(i));
+                    field.setText(currentFields.get(i - 1));
                 }
             } else {
                 field.setText("Години");
@@ -213,23 +213,27 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, List<String>> getStringListMap(String dateForDB) {
         Map<String, List<String>> data = new HashMap<>();
         database = openOrCreateDatabase("data", MODE_PRIVATE, null);
-        database.execSQL("drop table DataValues");
-        database.execSQL("drop table Notes");
+//        database.execSQL("drop table DataValues1");
+//        database.execSQL("drop table Notes1");
         createTablesInDB();
         Cursor resultSet = database.rawQuery("Select * from DataValues" + number_table + " as dv left join Notes" +
                 number_table + " as n on dv.date=n.date where dv.date=" + dateForDB,null);
-        resultSet.moveToFirst();
-        List<String> valuesFromDB = new ArrayList<>();
-        int size = currentFields.size();
-        for (int i = 1; i < size + 6; i++) {
-            if (i == size + 3) {
-                continue;
-            } else {
-                valuesFromDB.add(resultSet.getString(i));
-            }
+        if (resultSet.getCount() == 0) {
+            return data;
         }
+        resultSet.moveToFirst();
+        int size = currentFields.size();
+        List<String> valuesFromDB = new ArrayList<>();
         while (resultSet.isAfterLast() == false) {
-            data.put(valuesFromDB.get(1), valuesFromDB.subList(2, size));
+            for (int i = 1; i < size + 7; i++) {
+                if (i == size + 3) {
+                    continue;
+                } else {
+                    valuesFromDB.add(resultSet.getString(i));
+                }
+            }
+            data.put(valuesFromDB.get(0), new ArrayList(valuesFromDB));
+            valuesFromDB.clear();
             resultSet.moveToNext();
         }
         resultSet.close();
@@ -262,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
         for(int hour = 1; hour < 25; hour++) {
             createdRow = getTableRow();
             for (int column = 0; column < currentFields.size() + 1; column++) {
-                EditText field = getEditText(tableParams, hour, column);
+                EditText field = getObjectEditText(tableParams, hour, column);
                 field.setBackgroundResource(getBackgroundResId(data, hour));
 //                field.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 field.setOnCreateContextMenuListener(this);
@@ -280,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fillSummaryNotes(Map<String, List<String>> data, int positionNote, int positionInResultSet, int hour) {
-        EditText text = getEditText(tableParams, hour, 0);
+        EditText text = getObjectEditText(tableParams, hour, 0);
         if (data != null) {
             text.setText(getText(data, 1, positionInResultSet + 1, text));
         } else {
@@ -303,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Integer getBackgroundResId(Map<String, List<String>> data, int hour) {
-        int positionColor = currentFields.size();
+        int positionColor = currentFields.size() + 1;
         if (data == null || data.get(String.valueOf(hour)).get(positionColor).equals(COLOR_WHITE)) {
             return R.drawable.back;
         }
@@ -315,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private EditText getEditText(TableRow.LayoutParams rowParams, int hour, int column) {
+    private EditText getObjectEditText(TableRow.LayoutParams rowParams, int hour, int column) {
         EditText field = new EditText(this);
         field.setLayoutParams(rowParams);
         field.setId(number_table * 1000 + hour * 10 + column);
@@ -332,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
         if (data == null) {
             return "0";
         }
-        return data.get(String.valueOf(hour)).get(column - 1);
+        return data.get(String.valueOf(hour)).get(column);
     }
 
     public void onClickCalendar(View v) {
@@ -347,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
                 number_table = 1;
                 idDate = R.id.date1;
                 idFields = R.id.fields1;
-                idTable = R.id.table1;
+                idTable = R.id.main_table1;
                 currentLayout = R.layout.table1;
                 currentFields = fields1;
                 break;
@@ -355,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
                 number_table = 2;
                 idDate = R.id.date2;
                 idFields = R.id.fields2;
-                idTable = R.id.table2;
+                idTable = R.id.main_table2;
                 currentLayout = R.layout.table2;
                 currentFields = fields2;
                 break;
@@ -363,12 +367,13 @@ public class MainActivity extends AppCompatActivity {
                 number_table = 3;
                 idDate = R.id.date3;
                 idFields = R.id.fields3;
-                idTable = R.id.table3;
-                currentLayout = R.layout.table2;
+                idTable = R.id.main_table3;
+                currentLayout = R.layout.table3;
                 currentFields = fields3;
                 break;
         }
         sendToHandler(SET_CONTENT, null);
+        updateMainTable(dateForDB);
     }
 
     public void onClickSaveData(View v) {
@@ -385,17 +390,17 @@ public class MainActivity extends AppCompatActivity {
                 List<String> row = new ArrayList<>();
                 EditText field;
                 for (int hour = 1; hour < 25; hour++) {
-                    for (int column = 0; column < currentFields.size() + 1; column++) {
+                    for (int column = 1; column < currentFields.size() + 1; column++) {
                         field = findViewById(generateId(hour, column));
                         row.add(field.getText().toString());
                     }
                     String backColor = hourMarkedFields.get(String.valueOf(hour));
-                    row.add(backColor);
-                    String query = "INSERT INTO DataValues" + number_table + " VALUES(" + dateForDB + "," + hour + ",";
-                    for (int i = 1; i < currentFields.size(); i++) {
-                        query += row.get(i) + ",";
+                    row.add(backColor == null ? COLOR_WHITE : backColor);
+                    String query = "INSERT INTO DataValues" + number_table + " VALUES(" + dateForDB + "," + hour + ",'";
+                    for (int i = 0; i < currentFields.size(); i++) {
+                        query += row.get(i) + "','";
                     }
-                    query += row.get(currentFields.size() + 1) + "');";
+                    query += row.get(currentFields.size()) + "');";
                     database.execSQL(query);
                     row.clear();
                 }
@@ -471,6 +476,9 @@ public class MainActivity extends AppCompatActivity {
                 });
                 clearAll.start();
                 break;
+            case R.id.menu_tables:
+                currentLayout = R.layout.activity_main;
+                sendToHandler(SET_CONTENT, null);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -478,7 +486,7 @@ public class MainActivity extends AppCompatActivity {
     private void autoFillData() {
         if(checkFocus()) {
             EditText field = (EditText) getCurrentFocus();
-            int hourFocus = (field.getId()) / 10;
+            int hourFocus = ((field.getId()) % 1000) / 10;
             if (hourFocus < 1 || hourFocus > 24) {
                 return;
             }
@@ -521,7 +529,7 @@ public class MainActivity extends AppCompatActivity {
     private void clearOneRecord() {
         if(checkFocus()) {
             EditText field = (EditText) getCurrentFocus();
-            int hourFocus = (field.getId()) / 10;
+            int hourFocus = ((field.getId()) % 1000) / 10;
             for (int column = 1; column < currentFields.size() + 1; column++) {
                 sendToHandler(AUTO_FILL, hourFocus, column, "0");
             }
@@ -535,9 +543,9 @@ public class MainActivity extends AppCompatActivity {
     private void markRecord(String color) {
         if(checkFocus()) {
             EditText field = (EditText) getCurrentFocus();
-            int hourFocus = (field.getId()) / 10;
+            int hourFocus = ((field.getId()) % 1000) / 10;
             for (int column = 0; column < currentFields.size() + 1; column++) {
-                findViewById(generateId(hourFocus, column)).setBackgroundResource(color == null ?
+                findViewById(generateId(hourFocus, column)).setBackgroundResource(color == null || color == "white" ?
                         R.drawable.back : R.drawable.mark_field);
             }
             hourMarkedFields.put(String.valueOf(hourFocus), color);
