@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void createFieldNames() {
         TextView field;
+        createdRow = getTableRow();
         for(int i = 0; i < currentFields.size() + 1; i++) {
             String nameField;
             SpannableStringBuilder sb = null;
@@ -206,7 +207,14 @@ public class MainActivity extends AppCompatActivity {
             field.setEms(10);
             field.setGravity(Gravity.CENTER);
             field.setBackgroundResource(R.drawable.back);
-            sendToHandler(ADD_VIEW, field);
+            if (number_table != 3) {
+                sendToHandler(ADD_VIEW, field);
+            } else {
+                createdRow.addView(field);
+            }
+        }
+        if (number_table == 3) {
+            sendToHandler(ADD_TABLEROW, createdRow);
         }
     }
 
