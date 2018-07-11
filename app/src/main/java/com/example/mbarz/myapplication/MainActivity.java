@@ -343,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
             return String.valueOf(hour / 18 * (-24)+ hour + 7);
         }
         if (data == null) {
-            return "0";
+            return "";
         }
         return data.get(String.valueOf(hour)).get(column);
     }
@@ -536,7 +536,7 @@ public class MainActivity extends AppCompatActivity {
             EditText field = (EditText) getCurrentFocus();
             int hourFocus = getHourFocus(field.getId());
             for (int column = 1; column < currentFields.size() + 1; column++) {
-                sendToHandler(AUTO_FILL, hourFocus, column, "0");
+                sendToHandler(AUTO_FILL, hourFocus, column, "");
             }
         }
     }
