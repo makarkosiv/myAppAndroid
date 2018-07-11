@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         dateForDB = format.format(new Date());
-//        ((Button) findViewById(idDate)).setText(date);
 
         handler = new Handler() {
             public void handleMessage(android.os.Message msg) {
@@ -124,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                                     currentLayout = getLayoutByNumberTable(number_table);
                                     setContentView(currentLayout);
                                     ((Button) findViewById(idDate)).setText(date);
+                                    hourMarkedFields.clear();
                                     updateMainTable(selectedDate);
                                 }
                             }
@@ -221,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
     private Map<String, List<String>> getStringListMap(String dateForDB) {
         Map<String, List<String>> data = new HashMap<>();
         database = openOrCreateDatabase("data", MODE_PRIVATE, null);
+//        deleteDatabase("data");
 //        database.execSQL("drop table DataValues1");
 //        database.execSQL("drop table Notes1");
         createTablesInDB();
@@ -330,9 +331,9 @@ public class MainActivity extends AppCompatActivity {
     private EditText getObjectEditText(TableRow.LayoutParams rowParams, int hour, int column) {
         EditText field = new EditText(this);
         field.setLayoutParams(rowParams);
-        field.setId(number_table * 1000 + hour * 10 + column);
+        field.setId(generateId(hour, column));
         field.setEms(10);
-        field.setGravity(Gravity.CENTER);
+        field.setGravity((hour < 25) ? Gravity.CENTER : Gravity.LEFT);
         return field;
     }
 
@@ -360,7 +361,6 @@ public class MainActivity extends AppCompatActivity {
                 idDate = R.id.date1;
                 idFields = R.id.fields1;
                 idTable = R.id.main_table1;
-                currentLayout = R.layout.table1;
                 currentFields = fields1;
                 break;
             case R.id.button_table2:
@@ -368,7 +368,6 @@ public class MainActivity extends AppCompatActivity {
                 idDate = R.id.date2;
                 idFields = R.id.fields2;
                 idTable = R.id.main_table2;
-                currentLayout = R.layout.table2;
                 currentFields = fields2;
                 break;
             case R.id.button_table3:
@@ -376,12 +375,10 @@ public class MainActivity extends AppCompatActivity {
                 idDate = R.id.date3;
                 idFields = R.id.fields3;
                 idTable = R.id.main_table3;
-                currentLayout = R.layout.table3;
                 currentFields = fields3;
                 break;
         }
-        sendToHandler(SET_CONTENT, null);
-        updateMainTable(dateForDB);
+        onClickCalendar(null);
     }
 
     public void onClickSaveData(View v) {
@@ -494,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
     private void autoFillData() {
         if(checkFocus()) {
             EditText field = (EditText) getCurrentFocus();
-            int hourFocus = ((field.getId()) % 1000) / 10;
+            int hourFocus = getHourFocus(field.getId());
             if (hourFocus < 1 || hourFocus > 24) {
                 return;
             }
@@ -537,7 +534,7 @@ public class MainActivity extends AppCompatActivity {
     private void clearOneRecord() {
         if(checkFocus()) {
             EditText field = (EditText) getCurrentFocus();
-            int hourFocus = ((field.getId()) % 1000) / 10;
+            int hourFocus = getHourFocus(field.getId());
             for (int column = 1; column < currentFields.size() + 1; column++) {
                 sendToHandler(AUTO_FILL, hourFocus, column, "0");
             }
@@ -551,7 +548,7 @@ public class MainActivity extends AppCompatActivity {
     private void markRecord(String color) {
         if(checkFocus()) {
             EditText field = (EditText) getCurrentFocus();
-            int hourFocus = ((field.getId()) % 1000) / 10;
+            int hourFocus = getHourFocus(field.getId());
             for (int column = 0; column < currentFields.size() + 1; column++) {
                 findViewById(generateId(hourFocus, column)).setBackgroundResource(color == null || color == "white" ?
                         R.drawable.back : R.drawable.mark_field);
@@ -561,6 +558,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private int generateId(int x, int y) {
-        return number_table * 1000 + x * 10 + y;
+        return number_table != 3 ? number_table * 1000 + x * 10 + y : number_table * 10000 + x * 100 + y;
+    }
+
+    private int getHourFocus(int id) {
+        return number_table != 3 ? (id % 1000) / 10 : (id % 10000) / 100;
     }
 }
