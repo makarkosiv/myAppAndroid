@@ -67,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
     private int idFields;
     private int idTable;
     private int currentLayout;
+    private int previouosLayout;
+    private List<Integer> layouts = Arrays.asList(R.layout.activity_main, R.layout.cvng, R.layout.sverdlovyny1, R.layout.sverdlovyny2, R.layout.calendar);
+    private String currentSv;
+    private int currentCVNG;
 
     Map<String, String> hourMarkedFields = new HashMap<>();
     Handler handler;
@@ -120,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
                                     date = new StringBuilder().append(mDay)
                                             .append("-").append(mMonth).append("-").append(mYear).toString();
                                     Toast.makeText(getApplicationContext(), date, Toast.LENGTH_LONG).show();
+                                    previouosLayout = currentLayout;
                                     currentLayout = getLayoutByNumberTable(number_table);
                                     setContentView(currentLayout);
                                     ((Button) findViewById(idDate)).setText(date);
@@ -253,21 +258,21 @@ public class MainActivity extends AppCompatActivity {
     private void createTablesInDB() {
         switch (number_table) {
             case 1:
-            database.execSQL("CREATE TABLE IF NOT EXISTS DataValues1(date DATE, hour INT, Pbuf FLOAT, " +
-                    "Pzatr FLOAT, Pkil FLOAT, Plin FLOAT, color VARCHAR);");
-            database.execSQL("CREATE TABLE IF NOT EXISTS Notes1(date DATE, note TEXT, recommend TEXT, author TEXT);");
-            break;
+                database.execSQL("CREATE TABLE IF NOT EXISTS DataValues1(date DATE, hour INT, Pbuf FLOAT, " +
+                        "Pzatr FLOAT, Pkil FLOAT, Plin FLOAT, color VARCHAR);");
+                database.execSQL("CREATE TABLE IF NOT EXISTS Notes1(date DATE, note TEXT, recommend TEXT, author TEXT);");
+                break;
             case 2:
-            database.execSQL("CREATE TABLE IF NOT EXISTS DataValues2(date DATE, hour INT, " +
-                    "Deep FLOAT, Tasks TEXT, color VARCHAR);");
-            database.execSQL("CREATE TABLE IF NOT EXISTS Notes2(date DATE, note TEXT, recommend TEXT, author TEXT);");
-            break;
+                database.execSQL("CREATE TABLE IF NOT EXISTS DataValues2(date DATE, hour INT, " +
+                        "Deep FLOAT, Tasks TEXT, color VARCHAR);");
+                database.execSQL("CREATE TABLE IF NOT EXISTS Notes2(date DATE, note TEXT, recommend TEXT, author TEXT);");
+                break;
             case 3:
-            database.execSQL("CREATE TABLE IF NOT EXISTS DataValues3(date DATE, hour INT, Ptrap FLOAT, " +
-                    "Plin FLOAT, blowing TEXT, number INT, state TEXT, pumped FLOAT, start TEXT, finish TEXT, " +
-                    "arrived FLOAT, arrivedFrom TEXT, color VARCHAR);");
-            database.execSQL("CREATE TABLE IF NOT EXISTS Notes3(date DATE, note TEXT, recommend TEXT, author TEXT);");
-            break;
+                database.execSQL("CREATE TABLE IF NOT EXISTS DataValues3(date DATE, hour INT, Ptrap FLOAT, " +
+                        "Plin FLOAT, blowing TEXT, number INT, state TEXT, pumped FLOAT, start TEXT, finish TEXT, " +
+                        "arrived FLOAT, arrivedFrom TEXT, color VARCHAR);");
+                database.execSQL("CREATE TABLE IF NOT EXISTS Notes3(date DATE, note TEXT, recommend TEXT, author TEXT);");
+                break;
         }
     }
 
@@ -300,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
             if (positionInResultSet == positionNote + 2) {
                 text.setText("Виконавець:\n");
             } else {
-                text.setText(positionInResultSet == positionNote ? "Примітка:\n" : "Пропозиції щодо раціоналізації:\n");
+                text.setText(positionInResultSet == positionNote ? "Виконані роботи:\n" : "Пропозиції щодо раціоналізації:\n");
             }
         }
         createdRow = getTableRow();
@@ -349,20 +354,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickCalendar(View v) {
+        previouosLayout = currentLayout;
         currentLayout = R.layout.calendar;
         sendToHandler(SET_CONTENT, null);
         sendToHandler(SET_DATE_LISTENER, null);
     }
 
+    public void onClickSvMain(View v) {
+        previouosLayout = R.layout.activity_main;
+        currentLayout = R.layout.cvng;
+        sendToHandler(SET_CONTENT, null);
+    }
+
+    public void onClickSv(View v) {
+        currentSv = ((Button)v).getText().toString();
+        onClickTable(v);
+    }
+
+    public void onClickCVNG(View v) {
+        previouosLayout = currentLayout;
+        if (v.getId() == R.id.cvng1) {
+            currentLayout = R.layout.sverdlovyny1;
+        } else {
+            currentLayout = R.layout.sverdlovyny2;
+        }
+        currentCVNG = v.getId();
+        sendToHandler(SET_CONTENT, null);
+    }
+
     public void onClickTable(View v) {
         switch (v.getId()) {
-            case R.id.button_table1:
-                number_table = 1;
-                idDate = R.id.date1;
-                idFields = R.id.fields1;
-                idTable = R.id.main_table1;
-                currentFields = fields1;
-                break;
             case R.id.button_table2:
                 number_table = 2;
                 idDate = R.id.date2;
@@ -376,6 +397,13 @@ public class MainActivity extends AppCompatActivity {
                 idFields = R.id.fields3;
                 idTable = R.id.main_table3;
                 currentFields = fields3;
+                break;
+            default:
+                number_table = 1;
+                idDate = R.id.date1;
+                idFields = R.id.fields1;
+                idTable = R.id.main_table1;
+                currentFields = fields1;
                 break;
         }
         onClickCalendar(null);
@@ -412,12 +440,12 @@ public class MainActivity extends AppCompatActivity {
                 EditText note = findViewById(generateId(25, 0));
                 EditText recommendation = findViewById(generateId(26, 0));
                 EditText author = findViewById(generateId(27, 0));
-                    String stringNote = note.getText().toString();
-                    String stringRecommend = recommendation.getText().toString();
-                    String stringAuthor = author.getText().toString();
-                    String query2 = "INSERT INTO Notes" + number_table + " VALUES(" + dateForDB + ",'" + stringNote +
-                            "','" + stringRecommend + "','" + stringAuthor + "');";
-                    database.execSQL(query2);
+                String stringNote = note.getText().toString();
+                String stringRecommend = recommendation.getText().toString();
+                String stringAuthor = author.getText().toString();
+                String query2 = "INSERT INTO Notes" + number_table + " VALUES(" + dateForDB + ",'" + stringNote +
+                        "','" + stringRecommend + "','" + stringAuthor + "');";
+                database.execSQL(query2);
 
                 database.close();
                 hourMarkedFields.clear();
@@ -482,6 +510,7 @@ public class MainActivity extends AppCompatActivity {
                 clearAll.start();
                 break;
             case R.id.menu_tables:
+                previouosLayout = currentLayout;
                 currentLayout = R.layout.activity_main;
                 sendToHandler(SET_CONTENT, null);
         }
@@ -563,5 +592,26 @@ public class MainActivity extends AppCompatActivity {
 
     private int getHourFocus(int id) {
         return number_table != 3 ? (id % 1000) / 10 : (id % 10000) / 100;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!layouts.contains(currentLayout)) {
+            if (currentLayout == R.layout.table1) {
+                previouosLayout = currentCVNG == R.id.cvng1 ? R.layout.sverdlovyny1 : R.layout.sverdlovyny2;
+            } else {
+                previouosLayout = R.layout.activity_main;
+            }
+            currentLayout = R.layout.calendar;
+        } else {
+            currentLayout = previouosLayout;
+            int currentIndexLayout = currentLayout == R.layout.activity_main ? 1 : layouts.indexOf(currentLayout);
+            int previousIndexLayout = currentIndexLayout == 3 ? 1 : currentIndexLayout - 1;
+            previouosLayout = layouts.get(previousIndexLayout);
+        }
+        sendToHandler(SET_CONTENT, null);
+        if (currentLayout == R.layout.calendar) {
+            sendToHandler(SET_DATE_LISTENER, null);
+        }
     }
 }

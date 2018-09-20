@@ -10,7 +10,7 @@
     </item>
     <item
             android:id="@+id/menu_note"
-            android:title="Додати примітку">
+            android:title="Виконані роботи">
     </item>
     <item
             android:id="@+id/menu_recommendation"

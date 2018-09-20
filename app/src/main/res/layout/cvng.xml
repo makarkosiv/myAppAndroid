@@ -8,18 +8,18 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/table3">
+            android:id="@+id/cvng">
         <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             <Button
-                    android:text="Зберегти"
+                    android:text="ЦВНГ-1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/back"
-                    android:id="@+id/save_data_button3"
-                    android:onClick="onClickSaveData"
+                    android:id="@+id/cvng1"
+                    android:onClick="onClickCVNG"
                     android:layout_weight="1"/>
         </LinearLayout>
         <LinearLayout
@@ -27,29 +27,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             <Button
-                    android:text="Календар"
+                    android:text="ЦВНГ-2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/back"
-                    android:id="@+id/date3"
-                    android:onClick="onClickCalendar"
+                    android:id="@+id/cvng2"
+                    android:onClick="onClickCVNG"
                     android:layout_weight="1"/>
         </LinearLayout>
-        <LinearLayout
-                android:orientation="horizontal"
-                android:id="@+id/fields3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-        </LinearLayout>
-        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="match_parent">
-        <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
-            <TableLayout
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/main_table3">
-            </TableLayout>
-        </ScrollView>
-        </HorizontalScrollView>
     </LinearLayout>
 </LinearLayout>
